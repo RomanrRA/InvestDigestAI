@@ -158,14 +158,16 @@ function mapDividend(r: Record<string, unknown>): DividendSignal {
   };
 }
 
-/** Последние дивидендные события, свежие сверху. */
-export async function getDividendSignals(limit = 50): Promise<DividendSignal[]> {
+/** Дивидендные события: предстоящие отсечки (ближайшая вверху), затем прошедшие. */
+export async function getDividendSignals(limit = 60): Promise<DividendSignal[]> {
   const rows = await sql`
     select e.secid, s.shortname, e.title, e.event_date::text as event_date, e.url, e.raw
     from market_events e
     join securities s on s.secid = e.secid
     where e.kind = 'dividend'
-    order by e.event_date desc
+    order by (e.event_date >= current_date) desc,
+             case when e.event_date >= current_date then e.event_date end asc,
+             e.event_date desc
     limit ${limit}
   `;
   return rows.map((r) => mapDividend(r as Record<string, unknown>));

@@ -18,6 +18,7 @@
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
+  --color-accent-dim: var(--accent-dim);
   --color-negative: var(--negative);
   --font-sans: var(--font-inter);
 }

@@ -18,6 +18,13 @@ export function formatDateRu(isoDate: string): string {
   return dateFmt.format(new Date(`${isoDate}T00:00:00`));
 }
 
+/** Дата строго в прошлом относительно сегодняшнего дня (МСК-приближённо по локали сервера). */
+export function isPastDate(isoDate: string): boolean {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return new Date(`${isoDate}T00:00:00`) < today;
+}
+
 /** Оборот в читаемом виде: 1,2 млрд ₽ / 340 млн ₽ / 870 тыс ₽. */
 export function formatTurnover(valueRub: number): string {
   if (valueRub >= 1e9) return `${(valueRub / 1e9).toLocaleString("ru-RU", { maximumFractionDigits: 1 })} млрд ₽`;

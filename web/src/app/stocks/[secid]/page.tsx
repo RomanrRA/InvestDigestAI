@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { getStock, getStockDividends } from "@/lib/queries";
 import { getCurrentUser } from "@/lib/auth";
 import { sql } from "@/lib/db";
-import { formatDateRu, formatPct, formatTurnover } from "@/lib/format";
+import { formatDateRu, formatPct, formatTurnover, isPastDate } from "@/lib/format";
 import { PriceChart } from "@/components/PriceChart";
 import { WatchButton } from "@/components/WatchButton";
 
@@ -108,7 +108,16 @@ export default async function StockPage({ params }: Props) {
           <ul className="rounded-2xl border border-edge bg-surface divide-y divide-edge/60 overflow-hidden">
             {dividends.map((d) => (
               <li key={d.eventDate} className="flex items-center justify-between px-5 py-3">
-                <span className="text-sm text-muted">Реестр {formatDateRu(d.eventDate)}</span>
+                <span className="text-sm text-muted flex items-center gap-2">
+                  <span
+                    className={`text-xs rounded-full px-2 py-0.5 ${
+                      isPastDate(d.eventDate) ? "bg-edge text-muted" : "bg-accent-dim text-accent"
+                    }`}
+                  >
+                    {isPastDate(d.eventDate) ? "закрыт" : "предстоит"}
+                  </span>
+                  Реестр {formatDateRu(d.eventDate)}
+                </span>
                 <span className="tabular-nums">
                   {d.value.toLocaleString("ru-RU")} {d.currency}
                   {d.yieldPct !== null && (
