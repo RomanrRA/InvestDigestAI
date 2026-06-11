@@ -1,0 +1,58 @@
+# Прод-компоуз для shiny-ru (/opt/ai-invest). Рядом должны лежать: worker/ и .env
+# Postgres порты НЕ публикует (только compose-сеть) — соответствует ufw-политике сервера.
+# Worker — one-shot, запускается cron'ом: docker compose run --rm worker run-morning
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: ai-invest-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ai_invest
+      POSTGRES_PASSWORD: ai_invest
+      POSTGRES_DB: ai_invest
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ai_invest"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  worker:
+    build: ./worker
+    image: ai-invest-worker
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://ai_invest:ai_invest@postgres:5432/ai_invest
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles: ["tools"]
+
+  web:
+    build: ./web
+    image: ai-invest-web
+    restart: unless-stopped
+    # только loopback — наружу отдаёт хостовый nginx (ufw-политика сервера)
+    ports:
+      - "127.0.0.1:3020:3000"
+    environment:
+      DATABASE_URL: postgres://ai_invest:ai_invest@postgres:5432/ai_invest
+      SITE_URL: https://investdigestai.ru
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  bot:
+    image: ai-invest-worker
+    command: run-bot
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://ai_invest:ai_invest@postgres:5432/ai_invest
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:
