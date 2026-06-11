@@ -10,11 +10,11 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "InvestDigest AI — ИИ-аналитика российского рынка",
+    default: "InvestDigest AI — понятная аналитика рынка РФ каждое утро",
     template: "%s — InvestDigest AI",
   },
   description:
-    "Ежедневный ИИ-дайджест Московской биржи: индексы, ключевая ставка, лидеры роста и падения с объяснением простым языком.",
+    "ИИ объясняет простым языком, что произошло с вашими акциями и почему. Персональный дайджест по МосБирже без пампа и «иксов» — только факты со ссылками на источник.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
