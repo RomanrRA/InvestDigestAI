@@ -93,6 +93,10 @@ def cmd_run_morning(_args) -> None:
     with get_session() as session:
         moex.sync_securities(session)
         _collect(session, yesterday)
+        from ai_invest.collectors.corp_events import collect_dividends
+
+        events = collect_dividends(session, _signal_universe(session))
+        print(f"Новых дивидендных событий: {events}")
         try:
             digest = generate_digest(session, yesterday)
         except RuntimeError as e:
@@ -110,6 +114,31 @@ def cmd_run_bot(_args) -> None:
     from ai_invest.bot import run_bot
 
     run_bot()
+
+
+def _signal_universe(session) -> list[str]:
+    """Бумаги для сбора событий: топ-100 по последнему обороту + все из watchlist'ов."""
+    from sqlalchemy import select
+    from ai_invest.models import DailyCandle, WatchlistItem
+
+    last_date = session.scalar(select(DailyCandle.trade_date).order_by(DailyCandle.trade_date.desc()).limit(1))
+    top = session.execute(
+        select(DailyCandle.secid)
+        .where(DailyCandle.trade_date == last_date)
+        .order_by(DailyCandle.value_rub.desc().nulls_last())
+        .limit(100)
+    ).scalars().all()
+    watched = session.execute(select(WatchlistItem.secid).distinct()).scalars().all()
+    return sorted(set(top) | set(watched))
+
+
+def cmd_collect_events(_args) -> None:
+    from ai_invest.collectors.corp_events import collect_dividends
+
+    with get_session() as session:
+        secids = _signal_universe(session)
+        n = collect_dividends(session, secids)
+    print(f"Новых дивидендных событий: {n} (просканировано бумаг: {len(secids)})")
 
 
 def main() -> None:
@@ -135,6 +164,7 @@ def main() -> None:
 
     sub.add_parser("run-morning").set_defaults(func=cmd_run_morning)
     sub.add_parser("run-bot").set_defaults(func=cmd_run_bot)
+    sub.add_parser("collect-events").set_defaults(func=cmd_collect_events)
     sub.add_parser("max-chats").set_defaults(func=cmd_max_chats)
 
     args = parser.parse_args()

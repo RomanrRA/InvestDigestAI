@@ -133,6 +133,56 @@ export async function getStock(secid: string): Promise<StockDetail | null> {
   };
 }
 
+export type DividendSignal = {
+  secid: string;
+  shortname: string;
+  title: string;
+  eventDate: string;
+  value: number;
+  currency: string;
+  yieldPct: number | null;
+  url: string;
+};
+
+function mapDividend(r: Record<string, unknown>): DividendSignal {
+  const raw = (r.raw ?? {}) as { value?: number; currency?: string; yield_pct?: number | null };
+  return {
+    secid: r.secid as string,
+    shortname: r.shortname as string,
+    title: r.title as string,
+    eventDate: r.event_date as string,
+    value: Number(raw.value ?? 0),
+    currency: raw.currency ?? "RUB",
+    yieldPct: raw.yield_pct ?? null,
+    url: r.url as string,
+  };
+}
+
+/** Последние дивидендные события, свежие сверху. */
+export async function getDividendSignals(limit = 50): Promise<DividendSignal[]> {
+  const rows = await sql`
+    select e.secid, s.shortname, e.title, e.event_date::text as event_date, e.url, e.raw
+    from market_events e
+    join securities s on s.secid = e.secid
+    where e.kind = 'dividend'
+    order by e.event_date desc
+    limit ${limit}
+  `;
+  return rows.map((r) => mapDividend(r as Record<string, unknown>));
+}
+
+export async function getStockDividends(secid: string, limit = 5): Promise<DividendSignal[]> {
+  const rows = await sql`
+    select e.secid, s.shortname, e.title, e.event_date::text as event_date, e.url, e.raw
+    from market_events e
+    join securities s on s.secid = e.secid
+    where e.kind = 'dividend' and e.secid = ${secid}
+    order by e.event_date desc
+    limit ${limit}
+  `;
+  return rows.map((r) => mapDividend(r as Record<string, unknown>));
+}
+
 export async function getDigestByDate(date: string): Promise<DigestRow | null> {
   const rows = await sql`
     select id, digest_date::text as digest_date, content, created_at::text as created_at

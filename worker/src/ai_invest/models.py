@@ -73,13 +73,15 @@ class MarketEvent(Base):
     __tablename__ = "market_events"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    source: Mapped[str] = mapped_column(String(32))  # e-disclosure | moex | manual ...
-    kind: Mapped[str] = mapped_column(String(64))  # insider_deal | dividend | material_fact ...
+    source: Mapped[str] = mapped_column(String(32))  # moex | e-disclosure | manual ...
+    kind: Mapped[str] = mapped_column(String(64))  # dividend | insider_deal | material_fact ...
+    # стабильный ключ события для идемпотентного сбора (напр. "div:SBER:2025-07-18")
+    dedup_key: Mapped[str] = mapped_column(String(128), unique=True)
     secid: Mapped[str | None] = mapped_column(String(36), index=True)
     title: Mapped[str] = mapped_column(Text)
     body: Mapped[str | None] = mapped_column(Text)
     url: Mapped[str | None] = mapped_column(Text)
-    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    event_date: Mapped[date | None] = mapped_column(Date, index=True)  # дата привязки (отсечка/публикация)
     raw: Mapped[dict | None] = mapped_column(JSONB)
     collected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 

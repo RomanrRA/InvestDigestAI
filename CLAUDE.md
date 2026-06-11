@@ -10,6 +10,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Auth** — без пароля, через deep-link Telegram-бота `@AI_helper_invest_ru_bot`: сайт создаёт `login_tokens` → юзер жмёт Start у бота → бот (worker `run-bot`, compose-сервис `bot`) подтверждает токен → `/api/auth/poll` выдаёт cookie-сессию (`sessions`). Watchlist редактируется и на сайте, и в боте (/add, /del, /list); персональные дайджесты шлются в `run-morning` после канального.
 
+Этап 2 (монетизация) начат: **сигналы**. Лента дивидендов `/signals` + блок дивидендов на карточке бумаги; данные из `market_events`. Worker: `collectors/corp_events.py` собирает дивиденды через MOEX ISS (`collect-events`, входит в `run-morning`) с идемпотентным `dedup_key`; вселенная сбора — топ-100 по обороту + все watchlist-бумаги. ⚠️ **e-disclosure.ru закрыт капчей** (особенно с серверных IP) — сделки инсайдеров/существенные факты отложены до платного API Интерфакса/СКРИН; `market_events` (source/kind/dedup_key) готова принять их новым коллектором. Кандидат на «настоящих крупных игроков»: MOEX `analyticalproducts/netflow2` (позиционирование физлиц/юрлиц по фьючерсам). Осталось в этапе 2: ИИ-чат с RAG (pgvector + bge-m3), тарифы + ЮKassa.
+
 **Прод на shiny-ru** (`/opt/ai-invest`): compose-сервисы `postgres` (без портов), `web` (loopback `127.0.0.1:3020`), `bot` (long polling), `worker` (one-shot, cron). Хостовый nginx: `/etc/nginx/sites-available/investdigestai.conf` → proxy на 3020. Домен: **https://investdigestai.ru** — живой (A-записи + LE-сертификат через certbot с авто-продлением, http→https редирект).
 
 ## Команды (worker)

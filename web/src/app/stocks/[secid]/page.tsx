@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getStock } from "@/lib/queries";
+import { getStock, getStockDividends } from "@/lib/queries";
 import { getCurrentUser } from "@/lib/auth";
 import { sql } from "@/lib/db";
 import { formatDateRu, formatPct, formatTurnover } from "@/lib/format";
@@ -32,6 +32,7 @@ export default async function StockPage({ params }: Props) {
   const stock = await getStock(raw.toUpperCase());
   if (!stock || stock.series.length === 0) notFound();
 
+  const dividends = await getStockDividends(stock.secid);
   const user = await getCurrentUser();
   let watched = false;
   if (user) {
@@ -100,6 +101,25 @@ export default async function StockPage({ params }: Props) {
           <p className="font-semibold">{stock.listLevel ?? "—"}</p>
         </div>
       </div>
+
+      {dividends.length > 0 && (
+        <div className="mt-6">
+          <h2 className="font-semibold mb-3">Дивиденды</h2>
+          <ul className="rounded-2xl border border-edge bg-surface divide-y divide-edge/60 overflow-hidden">
+            {dividends.map((d) => (
+              <li key={d.eventDate} className="flex items-center justify-between px-5 py-3">
+                <span className="text-sm text-muted">Реестр {formatDateRu(d.eventDate)}</span>
+                <span className="tabular-nums">
+                  {d.value.toLocaleString("ru-RU")} {d.currency}
+                  {d.yieldPct !== null && (
+                    <span className="text-accent text-sm ml-2">~{d.yieldPct}%</span>
+                  )}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <p className="mt-6 text-xs text-muted">
         Итоги торгов за {formatDateRu(last.date)} · данные МосБиржи · не является индивидуальной

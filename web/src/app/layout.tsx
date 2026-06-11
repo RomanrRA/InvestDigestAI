@@ -33,6 +33,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <Link href="/stocks" className="hover:text-foreground transition-colors">
                 Акции
               </Link>
+              <Link href="/signals" className="hover:text-foreground transition-colors">
+                Сигналы
+              </Link>
               <Link href="/watchlist" className="hover:text-foreground transition-colors">
                 Мои бумаги
               </Link>
