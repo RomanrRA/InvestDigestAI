@@ -1,0 +1,17 @@
+# secrets
+.env
+.mcp.json
+
+# python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# node (этап 1)
+node_modules/
+.next/
+
+# misc
+*.log
+*.stackdump
