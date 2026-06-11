@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+:root {
+  --background: #07090f;
+  --surface: #0d1118;
+  --border: #1c2230;
+  --foreground: #e8ecf4;
+  --muted: #8a93a6;
+  --accent: #34d399;
+  --accent-dim: #10b98122;
+  --negative: #f87171;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-edge: var(--border);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-negative: var(--negative);
+  --font-sans: var(--font-inter);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.glow {
+  background:
+    radial-gradient(600px 300px at 20% 0%, #10b98114, transparent),
+    radial-gradient(800px 400px at 80% 10%, #3b82f611, transparent);
+}
+
+.digest-body b {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.digest-body {
+  color: #b9c1d0;
+  line-height: 1.75;
+}
+
+.digest-body i {
+  color: var(--muted);
+}
